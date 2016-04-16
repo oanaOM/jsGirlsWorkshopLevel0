@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Awesome Tasks</title>
+    <link href="level0.css" rel="stylesheet">
+    <script id="item-template" type="text/html">
+     <li data-completed="_DONE_" class="list-group-item">
+       <span style="width:100%" onclick="toogleStatus(event)">_TEXT_</span>
+       <button onclick="removeItem(event)" id="_ID_">x</button>
+     </li>
+    </script>
+  </head>
+  <body>
+    <h2>Awesome Tasks</h2>
+    <div class="panel panel-default">
+    <form class="panel" class="panel-heading" class="form-control" autofocus="autofocus" style="text-align:center;">
+       <input id="new-item" placeholder="Add new task ... ">
+       </input>
+       <button onclick="createNew(event);" class="btn btn-primary">Add</button>
+    </form>
+    <ul id="task-list" class="list-group"></ul>
+    <div class="panel-footer text-center small">
+      <span>Show: </span>
+      <button onclick="filterItems()" class="filter-all">All</button>
+      <button onclick="filterItems('active')" class="filter-active">Active</button>
+      <button onclick="filterItems('completed')" class="filter-completed">Completed</button>
+    </div>
+    <div class="panel-footer text-center small">
+      <button onclick="clearCompletedItems()">Clear completed</button>
+    </div>
+   </div>
+  </body>
+<script>
+
+  // var listItems = [
+  //   {text:'Buy Coffee', completed:false},
+  //   {text:'Buy Muffins', completed:true},
+  //   {text:'Disco Dance', completed:false},
+  // ];
+
+  //var listItems = loadList();
+
+  //store our listItems as a String using a JSON string
+
+
+  //querySelector -- allows to select a part of the DOM within the document
+
+   var createNew = function(event){
+     //call this to prevent the browser from reloading when an item is added
+     event.preventDefault();
+     var newItemToAdd = document.querySelector('#new-item');
+     //clean up the text field
+     var newItemToAddValue = newItemToAdd.value.trim();
+
+     if(!newItemToAddValue) return;
+
+     listItems.push({text:newItemToAddValue, completed:false, id:Math.random()});
+     newItemToAdd.value = '';
+
+     updateList(listItems,true);
+ }
+
+ var updateList = function(items,save){
+   var listElement = document.querySelector('#task-list');
+   //innerHTML -- point in this HTML
+   //add a new item the list
+   listElement.innerHTML = '';
+   items.forEach(function(item){
+     listElement.innerHTML +=renderItem(item);
+   });
+
+  if (save) localStorage.listItems = JSON.stringify(items);
+
+  updateCounters();
+ }
+
+ var renderItem = function(item){
+   var template = document.querySelector('#item-template').innerHTML;
+   template = template.replace('_DONE_', item.completed)
+   template = template.replace('_TEXT_', item.text)
+   template  = template.replace('_ID_',item.id)
+   return template;
+ }
+
+ var removeItem = function(event){
+   //<button> is on same level as <span> so it makes him sibling
+   //previousElementSibling.innerHTML - bring the previous element of the sibling and get his innerHTML
+   var clickedItemID = event.target.getAttribute('id');
+
+   //filter returns a copy of the list before we remove the item
+   listItems = listItems.filter(function(item){
+
+     return clickedItemID!=item.id;
+   })
+   //update the list with the removed item
+   updateList(listItems, true);
+ }
+
+ var toogleStatus = function(event){
+   var clickedItem = event.target.innerHTML;
+
+   listItems.forEach(function(item){
+     if(clickedItem === item.text){
+       //invert completed properly
+        item.completed = !item.completed
+     }
+   });
+   updateList(listItems);
+ };
+
+ var loadList = function(){
+   if(localStorage.listItems) return JSON.parse(localStorage.listItems);
+
+   return[
+     {text:"Buy Coffee", completed:true},
+     {text:"Buy Muffins", completed:false},
+     {text:"Disco Dance", completed:false}
+   ];
+
+ }
+
+ var filterItems =  function(status){
+   //create a new empty list
+    var itemsToShow = [];
+
+    if(status === 'completed'){
+      itemsToShow = listItems.filter(function(item){
+        return item.completed;
+      });
+    } else if(status === 'active'){
+      itemsToShow = listItems.filter(function(item){
+        return !item.completed;
+      });
+    }else{
+      itemsToShow = listItems;
+    }
+    updateList(itemsToShow);
+
+ }
+ var updateCounters = function(){
+   var completedOnesCount = 0;
+
+   listItems.forEach(function(item){
+     if(item.completed) completedOnesCount++;
+   })
+
+   document.querySelector('.filter-all').dataset.count = listItems.length;
+   document.querySelector('.filter-active').dataset.count = listItems.length - completedOnesCount;
+   document.querySelector('.filter-completed').dataset.count = completedOnesCount;
+ }
+
+ var clearCompletedItems = function(){
+   listItems = listItems.filter(function(item){
+     return !item.completed;
+   })
+  updateList(listItems,true);
+ }
+
+
+var listItems = loadList(listItems);
+
+updateList(listItems);
+
+
+
+
+
+
+</script>
+</html>
